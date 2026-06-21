@@ -52,8 +52,6 @@ konkretnym zagrożeniem na własnym systemie. Łączy je to, że sięgają po te
 kojarzone z atakiem (memory dumping, process suspension, manipulacja
 widocznością procesów) i obracają je w stronę **obrony, analizy i zrozumienia**.
 
-Nie wierzę w obronę bez zrozumienia ataku. Te narzędzia są dowodem tej zasady.
-
 ---
 
 ## Status & roadmap
