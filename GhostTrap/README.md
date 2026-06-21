@@ -85,5 +85,5 @@ MIT
 
 ---
 
-**Author:**  
-Your Adrian Jędrocha
+**Author:**
+Sentio (`salmontts`) — Adrian Jędrocha

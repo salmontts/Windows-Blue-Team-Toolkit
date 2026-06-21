@@ -11,18 +11,28 @@ function Log($msg) {
 Log "=== EXORCIST START ==="
 
 # === STEP 1: Detect suspicious dllhost.exe ===
+# Prawdziwy dllhost.exe (COM Surrogate) ZAWSZE leży w System32/SysWOW64 i ma
+# rodzica svchost.exe. Flagujemy instancje, które odstają od tego wzorca:
+#  - ExecutablePath spoza System32/SysWOW64  (masquerading, T1036)
+#  - brak ścieżki przy jednoczesnym braku dostępu może oznaczać ukrywanie
+$sys32 = "$env:WINDIR\System32\dllhost.exe"
+$sysWow = "$env:WINDIR\SysWOW64\dllhost.exe"
+
 $targets = Get-CimInstance Win32_Process -Filter "Name='dllhost.exe'" | Where-Object {
-    $_.ParentProcessId -eq 0 -or $_.ExecutablePath -eq $null -or $_.CommandLine -eq $null
+    $path = $_.ExecutablePath
+    # podejrzane = ma ścieżkę, ale NIE jest to legalna lokalizacja systemowa
+    ($path -ne $null) -and
+    ($path -ne $sys32) -and ($path -ne $sysWow)
 }
 
 foreach ($proc in $targets) {
-    $id = $proc.ProcessId
-    Log "Suspicious dllhost.exe PID: $id"
+    $procId = $proc.ProcessId
+    Log "Suspicious dllhost.exe PID: $procId  Path: $($proc.ExecutablePath)"
     try {
-        Stop-Process -Id $id -Force
-        Log "KILLED PID: $id"
+        Stop-Process -Id $procId -Force
+        Log "KILLED PID: $procId"
     } catch {
-        Log "Error killing PID $(id): $_"
+        Log "Error killing PID $($procId): $_"
     }
 }
 

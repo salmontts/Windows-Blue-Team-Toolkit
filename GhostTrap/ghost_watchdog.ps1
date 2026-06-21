@@ -32,8 +32,10 @@ while ($true) {
     }
     foreach ($targetpid in $frozenPIDs.Keys) {
         if ($dumpedPIDs.ContainsKey($targetpid)) { continue }
+        # PID z regex jest stringiem -> rzutuj na int dla Get-Process
+        $pidInt = [int]$targetpid
         try {
-            $proc = Get-Process -Id $targetpid -ErrorAction Stop
+            $proc = Get-Process -Id $pidInt -ErrorAction Stop
         } catch {
             continue
         }
@@ -42,15 +44,15 @@ while ($true) {
         $dumpFile = "$dumpPath\${procName}_PID${targetpid}_$timestamp.dmp"
         $metaFile = "$dumpPath\${procName}_PID${targetpid}_$timestamp-info.txt"
 
-        # Memory dump
-        Write-Host "💾 Dumping PID: $targetpid → $dumpFile"
-        Log "Dumping $targetpid to $dumpFile"
-        Start-Process -NoNewWindow -FilePath $procDumpPath -ArgumentList "-accepteula", "-ma", $targetpid, $dumpFile
+        # Memory dump — -Wait, żeby nie odpalić wielu procdumpów na ten sam PID
+        Write-Host "💾 Dumping PID: $pidInt → $dumpFile"
+        Log "Dumping $pidInt to $dumpFile"
+        Start-Process -NoNewWindow -Wait -FilePath $procDumpPath -ArgumentList "-accepteula", "-ma", $pidInt, $dumpFile
 
         # Collecting information
-        $cmdline = (Get-CimInstance Win32_Process -Filter "ProcessId=$targetpid").CommandLine
+        $cmdline = (Get-CimInstance Win32_Process -Filter "ProcessId=$pidInt").CommandLine
         try {
-            $dlls = (Get-Process -Id $targetpid).Modules | ForEach-Object { $_.FileName }
+            $dlls = (Get-Process -Id $pidInt).Modules | ForEach-Object { $_.FileName }
         } catch {
             $dlls = @("Error retrieving DLLs: $_")
         }

@@ -1,6 +1,12 @@
 #!/bin/bash
-# Author: AdrianJ & ALEX (2025)
-# Audit domowy: sieć LAN + analiza AI
+# Author: Sentio (salmontts) / Adrian Jędrocha - 2025
+# Audyt domowy: discovery sieci LAN + heurystyczna klasyfikacja urządzeń
+#
+# Wymaga roota dla pełnego skanu (-sV -p-). Bez roota nmap ograniczy wyniki.
+if [ "$EUID" -ne 0 ]; then
+  echo "[!] Uruchom przez sudo - pełny skan (-sV -p-) wymaga uprawnień roota."
+  echo "    Bez roota wyniki będą niepełne."
+fi
 
 NETWORK="192.168.1.0/24"
 REPORT="audit_domowy_adrianj_2025.txt"
@@ -32,7 +38,7 @@ for ip in $(cat live_hosts.txt); do
   nmap -sV -T4 -Pn -p- --min-rate=1000 $ip -oN nmap_$ip.txt
   echo "Otwartych portów: $(grep open nmap_$ip.txt | wc -l)" >> $REPORT
 
-  # AI analiza typu urządzenia
+  # Heurystyczna klasyfikacja typu urządzenia (na podstawie wykrytych usług)
   TYPE=$(grep open nmap_$ip.txt | awk '{print $3}' | tr '\n' ',' | sed 's/,$//')
   echo "Usługi: $TYPE" >> $REPORT
 
@@ -48,8 +54,8 @@ for ip in $(cat live_hosts.txt); do
     echo "Typ: ❓ Niezidentyfikowany (sprawdź ręcznie)" >> $REPORT
   fi
 
-  # Podstawowe skrypty luk
-  echo "[*] Skanowanie podatności..." >> $REPORT
+  # Skan podatności (nmap NSE). UWAGA: --script vuln bywa wolny (minuty/host).
+  echo "[*] Skanowanie podatności (może potrwać)..." >> $REPORT
   nmap --script vuln -Pn $ip -oN vuln_$ip.txt
   grep "VULNERABLE" vuln_$ip.txt >> $REPORT || echo "Brak oczywistych luk." >> $REPORT
   

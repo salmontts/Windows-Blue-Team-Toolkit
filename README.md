@@ -1,60 +1,79 @@
-# 🛡️ Adrian Jedrocha – Cyber Offensive Toolkit
+# Windows Blue Team Toolkit
 
-A collection of personal cybersecurity tools and scripts built for offensive operations – from real-time process monitoring and lightweight automation, to advanced memory analysis and complex detection traps.
+Zestaw narzędzi do **wykrywania, analizy i usuwania** zagrożeń na Windows —
+process monitoring, memory forensics, threat hunting i incident response.
 
-This toolkit blends **minimal, fast, and functional** scripts with more advanced solutions. It’s designed for analysts, red teamers, and threat hunters who value both efficiency and deep technical capability.
+Wszystkie narzędzia łączy jedna filozofia: **uczę się myśleć jak atakujący,
+żeby skuteczniej bronić.** Część z nich używa technik zapożyczonych z arsenału
+ofensywnego (memory dumping, process suspension, kernel-level visibility) —
+w służbie obrony i analizy. Purple team w praktyce.
 
----
-
-## 📂 Projects
-
-### 🔸 [SnitchHunter](./SnitchHunter)
-A PowerShell script that monitors all new processes in real time. Logs process name, PID, parent PID, and full executable path. Ideal for detecting suspicious or stealthy process activity in Windows.
-
-➡️ [Go to SnitchHunter](./SnitchHunter)
+> Narzędzia edukacyjne / do autoryzowanego użytku na własnych systemach.
 
 ---
 
-### 🔸 [Exorcist](./Exorcist)
-A PowerShell script to detect and remove malware hidden in `dllhost.exe` and related persistence mechanisms.
+## Narzędzia
 
-➡️ [Go to Exorcist](./Exorcist)
+### 🔍 SnitchHunter — real-time process monitor
+Monitoruje pojawianie się nowych procesów na żywo. Loguje nazwę, PID, parent
+PID i pełną ścieżkę. Prosty, szybki threat-hunting: wyłapuje podejrzaną lub
+stealth'ową aktywność procesów. Detekcja, MITRE T1057.
+
+### 🧹 Exorcist — persistence remover
+Wykrywa i usuwa typowe mechanizmy persistence malware: podejrzane `dllhost.exe`,
+backdoory WMI (event subscriptions), złośliwe scheduled tasks oraz wpisy
+Run/RunOnce wskazujące na AppData/Temp. Remediacja po incydencie.
+
+### 🐕 dllhost_watchdog — COM Surrogate monitor
+Obserwuje aktywność `dllhost.exe` (COM Surrogate — częsty cel injection),
+zamraża podejrzane instancje i zrzuca ich pamięć do analizy. Memory forensics
+w reakcji na zdarzenie.
+
+### 👻 GhostTrap — suspend & dump framework
+Dwuczęściowy: natywny komponent C++ zamraża procesy spoza whitelisty, a dumper
+PowerShell zrzuca ich pamięć przez procdump. Architektura kernel-adjacent do
+łapania krótko żyjących, ukrywających się procesów.
+
+### 🛡️ win-kernel-visibility-manager — studium anti-anti-analysis
+Szkielet sterownika kernel-mode: studium technik, którymi malware wykrywa
+obserwację, i jak (odwracając rootkit-technikę) analizować je w ukryciu.
+Z pełną sekcją obronną (cross-view detection). Szczegóły w jego README.
+
+### 🌐 audit_domowy — network audit
+Skaner sieci LAN: discovery hostów, port/service scan, MAC vendor lookup,
+heurystyczna klasyfikacja urządzeń i skan podatności (nmap NSE).
 
 ---
 
-### 🔸 [dllhost_watchdog](./dllhost_watchdog)
-A PowerShell tool to monitor and alert on suspicious `dllhost.exe` activity, helping with early detection of malicious persistence or process injection.
+## Filozofia: purple team
 
-➡️ [Go to dllhost_watchdog](./dllhost_watchdog)
+Każde z tych narzędzi powstało w realnej sytuacji — najczęściej w walce z
+konkretnym zagrożeniem na własnym systemie. Łączy je to, że sięgają po techniki
+kojarzone z atakiem (memory dumping, process suspension, manipulacja
+widocznością procesów) i obracają je w stronę **obrony, analizy i zrozumienia**.
 
----
-
-### 🔸 [GhostTrap](./GhostTrap)
-A tool for advanced detection, trapping, or analysis of suspicious processes (Windows rootkits, malware, etc.).
-
-➡️ [Go to GhostTrap](./GhostTrap)
+Nie wierzę w obronę bez zrozumienia ataku. Te narzędzia są dowodem tej zasady.
 
 ---
 
-## 📌 Coming soon:
-- **ReconX** – automated recon tool for footprinting and target profiling
-- **Malware-Analysis** – examples of memory dumps and script-based forensic analysis
+## Status & roadmap
+
+- [x] SnitchHunter — działa
+- [x] Exorcist — działa (po refaktorze: lepsza detekcja, fix błędów)
+- [x] dllhost_watchdog / GhostTrap — działają (memory forensics)
+- [x] audit_domowy — działa
+- [x] kernel-visibility-manager — szkielet edukacyjny + framing obronny
+- [ ] Ujednolicenie logowania (wspólny format, ścieżki)
+- [ ] Integracja z weryfikacją podpisu (jak w DEADWEIGHT) — redukcja FP
+- [ ] Eksport znalezisk do formatu pod SIEM
 
 ---
 
-## 👤 About Me
+## Autor
 
-I’m Adrian Jedrocha, an offensive security enthusiast focusing on Windows internals, malware analysis, and real-world threat detection. I thrive on building practical tools and automations for red teaming, incident response, and digital forensics. Always learning, always hacking.
+**Sentio** (`salmontts`) — Adrian Jędrocha
+Cybersecurity & embedded · Windows internals · malware analysis
 
----
-
-## 📜 License
+## Licencja
 
 MIT
-
----
-
-## ✍️ Author
-
-**Adrian Jedrocha**  
-Offensive Security Practitioner  

@@ -20,11 +20,26 @@ Log "FULLTRAP uruchomiony. Cel: $targetName co ${intervalMs}ms."
 # --- LOOP ---
 $counter = 0
 $dumpedPIDs = @{}
+# Legalny dllhost.exe (COM Surrogate) leży w System32/SysWOW64. Zamrażamy i
+# dumpujemy TYLKO instancje spoza tych lokalizacji - inaczej ryzykujemy
+# zawieszenie legalnej aplikacji korzystającej z COM.
+$legitPaths = @(
+    "$env:WINDIR\System32\dllhost.exe",
+    "$env:WINDIR\SysWOW64\dllhost.exe"
+)
 while ($true) {
     $procs = Get-Process | Where-Object { $_.ProcessName -eq ($targetName -replace ".exe", "") }
     foreach ($proc in $procs) {
         $targetpid = $proc.Id
         if ($dumpedPIDs.ContainsKey($targetpid)) { continue }
+
+        # Sprawdź ścieżkę - legalny COM Surrogate pomijamy
+        $procPath = $null
+        try { $procPath = $proc.Path } catch { $procPath = $null }
+        if ($procPath -and ($legitPaths -contains $procPath)) {
+            continue
+        }
+        Log "Non-standard $targetName PID $targetpid path=$procPath -> przetwarzam"
 
         $timestamp = Get-Date -Format "yyyyMMdd_HHmmss_fff"
         $dumpFile = "$dumpPath\${targetName}_PID${targetpid}_$timestamp.dmp"
@@ -55,10 +70,10 @@ while ($true) {
 
             Log "Zebrano info o PID $targetpid"
 
-            # Dump pamięci
+            # Dump pamięci — -Wait, żeby procdump skończył przed następną iteracją
             Write-Host "💾 Dumpuję PID: $targetpid → $dumpFile"
             Log "Dumping $targetpid to $dumpFile"
-            Start-Process -NoNewWindow -FilePath $procDumpPath -ArgumentList "-accepteula", "-ma", $targetpid, $dumpFile
+            Start-Process -NoNewWindow -Wait -FilePath $procDumpPath -ArgumentList "-accepteula", "-ma", $targetpid, $dumpFile
             $counter++
             $dumpedPIDs[$targetpid] = $true
             Log "Dump zakończony PID $targetpid"
